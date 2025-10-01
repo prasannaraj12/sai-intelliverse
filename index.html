@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sai Intelliverse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* General Body and Text Styling */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Modal and general styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: transparent;
+            margin: 5% auto;
+            padding: 3rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 900px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+            position: relative;
+        }
+        .close-btn {
+            color: #fff;
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            font-size: 3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .close-btn:hover, .close-btn:focus {
+            color: #3b82f6;
+        }
+        
+        /* 3D Canvas Styling */
+        #hero-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: -1;
+            display: block;
+        }
+        
+        .hidden-page {
+            display: none;
+        }
+        
+        /* Glassmorphism effect */
+        .glass-effect {
+            background-color: rgba(255, 255, 255, 0.05); /* Slightly transparent white */
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Glitch effect styles for the title */
+        #hero-title {
+            position: relative;
+            z-index: 10;
+            color: #d8dee9;
+            text-shadow: 0 0 10px rgba(126, 222, 237, 0.7),
+                         0 0 20px rgba(126, 222, 237, 0.5),
+                         0 0 40px rgba(126, 222, 237, 0.3);
+            animation: flicker 3s linear infinite;
+        }
+
+        #hero-title::before,
+        #hero-title::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: transparent;
+            overflow: hidden;
+        }
+
+        #hero-title::before {
+            left: 2px;
+            text-shadow: -2px 0 #ff00c1;
+            clip-path: polygon(0 0, 100% 0, 100% 30%, 0 30%);
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+        }
+
+        #hero-title::after {
+            left: -2px;
+            text-shadow: -2px 0 #00fffb;
+            clip-path: polygon(0 70%, 100% 70%, 100% 100%, 0 100%);
+            animation: glitch-anim-2 2s infinite linear alternate-reverse;
+        }
+        
+        @keyframes flicker {
+            0%, 15%, 25%, 35%, 45%, 55%, 65%, 75%, 85%, 95%, 100% { opacity: 1; }
+            5%, 20%, 30%, 40%, 50%, 60%, 70%, 80%, 90% { opacity: 0.99; }
+        }
+
+        @keyframes glitch-anim-1 {
+            0% { clip-path: polygon(0 20%, 100% 20%, 100% 30%, 0 30%); }
+            15% { clip-path: polygon(0 10%, 100% 10%, 100% 20%, 0 20%); }
+            30% { clip-path: polygon(0 50%, 100% 50%, 100% 60%, 0 60%); }
+            45% { clip-path: polygon(0 0, 100% 0, 100% 10%, 0 10%); }
+            60% { clip-path: polygon(0 80%, 100% 80%, 100% 90%, 0 90%); }
+            75% { clip-path: polygon(0 30%, 100% 30%, 100% 40%, 0 40%); }
+            90% { clip-path: polygon(0 70%, 100% 70%, 100% 80%, 0 80%); }
+            100% { clip-path: polygon(0 10%, 100% 10%, 100% 20%, 0 20%); }
+        }
+
+        @keyframes glitch-anim-2 {
+            0% { clip-path: polygon(0 60%, 100% 60%, 100% 70%, 0 70%); }
+            15% { clip-path: polygon(0 80%, 100% 80%, 100% 90%, 0 90%); }
+            30% { clip-path: polygon(0 10%, 100% 10%, 100% 20%, 0 20%); }
+            45% { clip-path: polygon(0 90%, 100% 90%, 100% 100%, 0 100%); }
+            60% { clip-path: polygon(0 30%, 100% 30%, 100% 40%, 0 40%); }
+            75% { clip-path: polygon(0 50%, 100% 50%, 100% 60%, 0 60%); }
+            90% { clip-path: polygon(0 0, 100% 0, 100% 10%, 0 10%); }
+            100% { clip-path: polygon(0 80%, 100% 80%, 100% 90%, 0 90%); }
+        }
+        
+        /* New Gallery Styles - Masonry Layout */
+        .masonry-grid {
+            column-count: 1;
+            column-gap: 1.5rem; /* Equivalent to gap-6 */
+        }
+        @media (min-width: 640px) { /* sm */
+            .masonry-grid { column-count: 2; }
+        }
+        @media (min-width: 768px) { /* md */
+            .masonry-grid { column-count: 3; }
+        }
+        @media (min-width: 1024px) { /* lg */
+            .masonry-grid { column-count: 4; }
+        }
+
+        .masonry-item {
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 1.5rem; /* Equivalent to gap-6 */
+            break-inside: avoid-column;
+        }
+
+        .masonry-item img {
+            width: 100%;
+            height: auto;
+            border-radius: 0.75rem; /* Equivalent to rounded-xl */
+            transition-property: all;
+            transition-duration: 300ms;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transform: scale(1);
+            filter: brightness(0.9);
+        }
+
+        .masonry-item:hover img {
+            transform: scale(1.05);
+            filter: brightness(1);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+
+        .tab-button-active {
+            background-color: #3b82f6;
+            color: #1f2937;
+            font-weight: 700;
+        }
+        .tab-button-inactive {
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* New Countdown and Date Styles */
+        .countdown-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .countdown-box {
+            background-color: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+            border-radius: 9999px; /* Tailwind's rounded-full */
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        #countdown-timer {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #93c5fd; /* Tailwind's text-blue-300 */
+        }
+        
+        #event-date {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #3b82f6; /* Tailwind's text-blue-500 */
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Logo Fade Effect */
+        #rotating-logo {
+            transition: opacity 1s ease-in-out;
+            opacity: 1;
+        }
+
+        #rotating-logo.fade-out {
+            opacity: 0;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-50 antialiased">
+
+    <!-- 3D Scene Canvas -->
+    <canvas id="hero-canvas"></canvas>
+
+    <!-- Top-left Logos with Scroll Fade Effect -->
+    <div id="top-left-logos" class="fixed top-6 left-6 z-30 flex items-center space-x-4 transition-opacity duration-300">
+        <img src="logo/Group Logo.png" alt="Sai Intelliverse Logo" class="h-5 md:h-7">
+        <img src="logo/College Logo.png" alt="Sai Ram Group of Institutions" class="h-5 md:h-7">
+    </div>
+
+    <!-- Fixed Navigation Header -->
+    <div class="fixed top-6 w-full flex justify-end pr-6 z-30">
+        <nav class="relative glass-effect px-3 py-2 shadow-lg rounded-full">
+            <!-- Container for menu items and button -->
+            <div class="flex items-center">
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-1">
+                    <a href="#about" class="nav-link text-gray-50 hover:text-blue-400 transition-colors duration-300 py-2 px-3 rounded-md" data-target="about">About</a>
+                    <a href="#events" class="nav-link text-gray-50 hover:text-blue-400 transition-colors duration-300 py-2 px-3 rounded-md" data-target="events">Events</a>
+                    <a href="#teams" class="nav-link text-gray-50 hover:text-blue-400 transition-colors duration-300 py-2 px-3 rounded-md" data-target="teams">Teams</a>
+                    <a href="#gallery" class="nav-link text-gray-50 hover:text-blue-400 transition-colors duration-300 py-2 px-3 rounded-md" data-target="gallery">Gallery</a>
+                    <a href="#contact" class="nav-link text-gray-50 hover:text-blue-400 transition-colors duration-300 py-2 px-3 rounded-md" data-target="contact">Contact</a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-button" class="text-gray-50 hover:text-blue-400 focus:outline-none p-1">
+                        <svg id="menu-open-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        <svg id="menu-close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu Dropdown -->
+            <div id="mobile-menu" class="hidden md:hidden absolute top-full mt-3 right-0 w-48 glass-effect rounded-xl p-2">
+                <a href="#about" class="nav-link block text-center py-2 px-4 text-sm text-gray-50 hover:bg-gray-800 rounded-md" data-target="about">About</a>
+                <a href="#events" class="nav-link block text-center py-2 px-4 text-sm text-gray-50 hover:bg-gray-800 rounded-md" data-target="events">Events</a>
+                <a href="#teams" class="nav-link block text-center py-2 px-4 text-sm text-gray-50 hover:bg-gray-800 rounded-md" data-target="teams">Teams</a>
+                <a href="#gallery" class="nav-link block text-center py-2 px-4 text-sm text-gray-50 hover:bg-gray-800 rounded-md" data-target="gallery">Gallery</a>
+                <a href="#contact" class="nav-link block text-center py-2 px-4 text-sm text-gray-50 hover:bg-gray-800 rounded-md" data-target="contact">Contact</a>
+            </div>
+        </nav>
+    </div>
+
+
+    <!-- Page Content Container -->
+    <div id="page-container">
+
+        <!-- Hero Section -->
+        <header id="hero" data-page="hero" class="h-screen flex flex-col justify-center items-center text-center p-6 relative z-10">
+            <h1 id="hero-title" class="text-6xl md:text-8xl font-bold leading-tight tracking-tighter" data-text="Sai Intelliverse 2k25">
+                Sai <span class="text-blue-400">Intelliverse 2k25</span>
+            </h1>
+            <p class="mt-4 text-xl md:text-2xl text-gray-50 max-w-2xl">
+                Technology Driven Lead Generation
+            </p>
+            <div class="countdown-container">
+                <div class="countdown-box">
+                    <div id="countdown-timer"></div>
+                </div>
+                <div id="event-date"> 10th October 2025</div>
+            </div>
+            <!-- Container for the two hero buttons -->
+            <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mt-8">
+                <a href="#events" class="nav-link px-8 py-4 text-lg font-semibold text-white glass-effect rounded-full shadow-lg transition-transform transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50" data-target="events">
+                    Explore Events
+                </a>
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSeYQBDQM4uwLpB7owR1MCVAwK3rFeVZODvIzeSyP_TOdIJ0iA/viewform?usp=dialog" class="px-8 py-4 text-lg font-semibold text-white glass-effect rounded-full shadow-lg transition-transform transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50" target="_blank" rel="noopener noreferrer">
+                    Register Now
+                </a>
+                  <a href="logo/Technical Quiz Competition.pdf" class="px-8 py-4 text-lg font-semibold text-white glass-effect rounded-full shadow-lg transition-transform transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50" target="_blank" rel="noopener noreferrer">
+                    Learn more
+                </a>
+            </div>
+        </header>
+
+        <!-- About Section -->
+        <section id="about" data-page="about" class="py-20 px-6 relative z-10 hidden-page">
+            <div class="container mx-auto max-w-4xl text-center glass-effect p-8 rounded-xl">
+                <h2 class="text-4xl md:text-5xl font-bold text-gray-50 mb-4">About the Event</h2>
+                <p class="text-lg md:text-xl text-gray-50 opacity-80">
+                    Sai Intelliverse is a multi-disciplinary event designed to bring together bright minds from various fields. We offer a platform for students to showcase their technical expertise and unleash their creative potential through a diverse range of competitions. This year, we are proud to host over 500 participants and 20+ partner organizations, making it our largest event yet. Join us for a journey of learning, competition, and fun!
+                </p>
+            </div>
+             <!-- Chief Guest -->
+            <div class="container mx-auto max-w-2xl mt-16 text-center">
+                <h3 class="text-3xl font-bold text-blue-400 mb-8">Founder Chairman Message</h3>
+                <div class="glass-effect rounded-xl p-8 shadow-2xl flex flex-col items-center">
+                    <img src="logo/Chairman Sir Logo.png" alt="Chief Guest" class="rounded-full w-32 h-32 object-cover border-4 border-blue-400">
+                    <h4 class="text-2xl font-semibold text-gray-50">MJF. Ln. Leo Muthu</h4>
+                    <p class="text-lg text-blue-400 mb-4">Founder Chairman</p>
+                    <p class="text-sm text-gray-50 opacity-80 max-w-prose">
+                         Our vision is based on hard work, open communication, a strong emphasis on team work and a high level of responsibility. This visionary culture allows and emphasises our wards not only to adopt the present-day challenges but also individual responsibilities to the society and our nation at large.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Events Section -->
+        <section id="events" data-page="events" class="py-20 px-6 relative z-10 hidden-page">
+            <div class="container mx-auto glass-effect p-8 rounded-xl">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl md:text-5xl font-bold text-gray-50">Our Events</h2>
+                    <p class="text-lg md:text-xl text-gray-50 opacity-80 mt-4">Discover your passion in our unique blend of events.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Paper Presentation -->
+                    <div class="glass-effect rounded-xl p-8 shadow-2xl transform transition-transform hover:scale-105">
+                        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-slate-700 mx-auto mb-4 text-3xl">📝</div>
+                        <h4 class="text-xl font-semibold text-gray-50 text-center mb-2">WORD 2 WORLD</h4>
+                        <p class="text-sm text-center text-gray-50 opacity-70">Present your research and innovative ideas to an expert panel.</p>
+                        <button data-event-id="paper-presentation" class="event-button mt-4 w-full px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 rounded-full transition-all duration-300 transform hover:scale-105 hover:bg-indigo-700 shadow-lg hover:shadow-xl">Know More</button>
+                    </div>
+                    <!-- Idea Pitching -->
+                    <div class="glass-effect rounded-xl p-8 shadow-2xl transform transition-transform hover:scale-105">
+                        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-slate-700 mx-auto mb-4 text-3xl">💡</div>
+                        <h4 class="text-xl font-semibold text-gray-50 text-center mb-2">SHARK PODIUM</h4>
+                        <p class="text-sm text-center text-gray-50 opacity-70">Pitch your startup concepts and solutions to potential investors.</p>
+                        <button data-event-id="idea-pitching" class="event-button mt-4 w-full px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 rounded-full transition-all duration-300 transform hover:scale-105 hover:bg-indigo-700 shadow-lg hover:shadow-xl">Know More</button>
+                    </div>
+                    <!-- Poster Making -->
+                    <div class="glass-effect rounded-xl p-8 shadow-2xl transform transition-transform hover:scale-105">
+                        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-slate-700 mx-auto mb-4 text-3xl">🖼️</div>
+                        <h4 class="text-xl font-semibold text-gray-50 text-center mb-2">VISION CRAFT</h4>
+                        <p class="text-sm text-center text-gray-50 opacity-70">Showcase your creativity through vibrant and artistic posters.</p>
+                        <button data-event-id="poster-making" class="event-button mt-4 w-full px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 rounded-full transition-all duration-300 transform hover:scale-105 hover:bg-indigo-700 shadow-lg hover:shadow-xl">Know More</button>
+                    </div>
+                    <!-- Auction -->
+                    <div class="glass-effect rounded-xl p-8 shadow-2xl transform transition-transform hover:scale-105">
+                        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-slate-700 mx-auto mb-4 text-3xl">💰</div>
+                        <h4 class="text-xl font-semibold text-gray-50 text-center mb-2">BIT-O-SCOPE</h4>
+                        <p class="text-sm text-center text-gray-50 opacity-70">Bid on exclusive items in this thrilling and fast-paced auction event.</p>
+                        <button data-event-id="auction" class="event-button mt-4 w-full px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 rounded-full transition-all duration-300 transform hover:scale-105 hover:bg-indigo-700 shadow-lg hover:shadow-xl">Know More</button>
+                    </div>
+                    <!-- Hypothetic Game -->
+                    <div class="glass-effect rounded-xl p-8 shadow-2xl transform transition-transform hover:scale-105">
+                        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-slate-700 mx-auto mb-4 text-3xl">🎲</div>
+                        <h4 class="text-xl font-semibold text-gray-50 text-center mb-2">BE THE HERO</h4>
+                        <p class="text-sm text-center text-gray-50 opacity-70">Test your strategic thinking and quick decision-making skills.</p>
+                        <button data-event-id="hypothetic-game" class="event-button mt-4 w-full px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 rounded-full transition-all duration-300 transform hover:scale-105 hover:bg-indigo-700 shadow-lg hover:shadow-xl">Know More</button>
+                    </div>
+                    <!-- Meme Creation Competition -->
+                    <div class="glass-effect rounded-xl p-8 shadow-2xl transform transition-transform hover:scale-105">
+                        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-slate-700 mx-auto mb-4 text-3xl">😂</div>
+                        <h4 class="text-xl font-semibold text-gray-50 text-center mb-2">MEME MADNESS</h4>
+                        <p class="text-sm text-center text-gray-50 opacity-70">Unleash your humor and wit to create the funniest memes.</p>
+                        <button data-event-id="meme-creation" class="event-button mt-4 w-full px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 rounded-full transition-all duration-300 transform hover:scale-105 hover:bg-indigo-700 shadow-lg hover:shadow-xl">Know More</button>
+                    </div>
+                    <!-- Photography Competition -->
+                    <div class="glass-effect rounded-xl p-8 shadow-2xl transform transition-transform hover:scale-105">
+                        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-slate-700 mx-auto mb-4 text-3xl">📸</div>
+                        <h4 class="text-xl font-semibold text-gray-50 text-center mb-2">THROUGH THE LENS</h4>
+                        <p class="text-sm text-center text-gray-50 opacity-70">Capture moments and stories through your unique lens.</p>
+                        <button data-event-id="photography" class="event-button mt-4 w-full px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 rounded-full transition-all duration-300 transform hover:scale-105 hover:bg-indigo-700 shadow-lg hover:shadow-xl">Know More</button>
+                    </div>
+                    <!-- Connection Game -->
+                    <div class="glass-effect rounded-xl p-8 shadow-2xl transform transition-transform hover:scale-105">
+                        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-slate-700 mx-auto mb-4 text-3xl">🔗</div>
+                        <h4 class="text-xl font-semibold text-gray-50 text-center mb-2">JILL JUNG JUNK</h4>
+                        <p class="text-sm text-center text-gray-50 opacity-70">Connect the dots and find the right solutions in this fun game.</p>
+                        <button data-event-id="connection-game" class="event-button mt-4 w-full px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 rounded-full transition-all duration-300 transform hover:scale-105 hover:bg-indigo-700 shadow-lg hover:shadow-xl">Know More</button>
+                    </div>
+                    <!-- Technical Quiz -->
+                    <div class="glass-effect rounded-xl p-8 shadow-2xl transform transition-transform hover:scale-105">
+                        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-slate-700 mx-auto mb-4 text-3xl">🧠</div>
+                        <h4 class="text-xl font-semibold text-gray-50 text-center mb-2">QUEST ARENA</h4>
+                        <p class="text-sm text-center text-gray-50 opacity-70">Challenge your knowledge with a quiz on technical concepts.</p>
+                        <button data-event-id="technical-quiz" class="event-button mt-4 w-full px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 rounded-full transition-all duration-300 transform hover:scale-105 hover:bg-indigo-700 shadow-lg hover:shadow-xl">Know More</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Teams Section -->
+        <section id="teams" data-page="teams" class="py-20 px-6 relative z-10 hidden-page">
+            <div class="container mx-auto text-center">
+                <h2 class="text-4xl md:text-5xl font-bold text-blue-400 text-gray-50 mb-4">Organizing Committee</h2>
+            
+                <div class="flex flex-col space-y-12">
+                    <h2 class="text-3xl font-bold text-blue-400 text-center"></h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+                        <!-- Dr. Arunkumar K -->
+                        <div class="glass-card-style rounded-xl p-6 shadow-lg transition-transform transform hover:scale-105">
+                            <img src="logo/Adobe Express - file.png" alt="Dr. Arunkumar K" class="rounded-lg w-full h-auto object-cover mx-auto mb-4 border-2 border-blue-400">
+                            <h4 class="text-xl font-semibold text-gray-50">Dr. Arunkumar K</h4>
+                            <p class="text-sm text-blue-400 opacity-80 mb-2">COO</p>
+                        </div>
+                        <!-- Dr. B Shadaksharappa -->
+                        <div class="glass-card-style rounded-xl p-6 shadow-lg transition-transform transform hover:scale-105">
+                            <img src="logo/Principal.png" alt="Dr. B Shadaksharappa" class="rounded-lg w-full h-auto object-cover mx-auto mb-4 border-2 border-blue-400">
+                            <h4 class="text-xl font-semibold text-gray-50">Dr. B Shadaksharappa</h4>
+                            <p class="text-sm text-blue-400 opacity-80 mb-2">Principal</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-center">
+                        <!-- Dr.Sivaprakash C -->
+                        <div class="glass-card-style rounded-xl p-6 shadow-lg transition-transform transform hover:scale-105 w-full md:w-1/2">
+                            <img src="logo/Prof. C. Shivaprakesh (SCET06EC01).-Photoroom.png" class="rounded-lg w-full h-auto object-cover mx-auto mb-4 border-2 border-blue-400">
+                            <h4 class="text-xl font-semibold text-gray-50">Dr.Sivaprakash C</h4>
+                            <p class="text-sm text-blue-400 opacity-80 mb-2">HOD</p>
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-3xl font-bold text-blue-400 text-center">Faculty Coordinators</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <!-- Tharini R -->
+                        <div class="glass-card-style rounded-xl p-6 shadow-lg transition-transform transform hover:scale-105">
+                            <img src="logo/Tharani R.png" alt="Tharini R" class="rounded-lg w-full h-auto object-cover mx-auto mb-4 border-2 border-blue-400">
+                            <h4 class="text-xl font-semibold text-gray-50">Tharini R</h4>
+                            <p class="text-sm text-blue-400 opacity-80 mb-2">Faculty Coordinator</p>
+                        </div>
+                        <!-- Revathi B -->
+                        <div class="glass-card-style rounded-xl p-6 shadow-lg transition-transform transform hover:scale-105">
+                            <img src="logo/Revathi B.png" alt="Revathi B" class="rounded-lg w-full h-auto object-cover mx-auto mb-4 border-2 border-blue-400">
+                            <h4 class="text-xl font-semibold text-gray-50">Revathi B</h4>
+                            <p class="text-sm text-blue-400 opacity-80 mb-2">Faculty Coordinator</p>
+                        </div>
+                        <!-- P Ramkumar -->
+                        <div class="glass-card-style rounded-xl p-6 shadow-lg transition-transform transform hover:scale-105">
+                            <img src="logo/P Rramkumar  (SCET20CS05).-Photoroom.png" alt="P Ramkumar" class="rounded-lg w-full h-auto object-cover mx-auto mb-4 border-2 border-blue-400">
+                            <h4 class="text-xl font-semibold text-gray-50">P Ramkumar</h4>
+                            <p class="text-sm text-blue-400 opacity-80 mb-2">Faculty Coordinator</p>
+                        </div>
+                        <!-- Vanarasan S -->
+                        <div class="glass-card-style rounded-xl p-6 shadow-lg transition-transform transform hover:scale-105">
+                            <img src="logo/DSC_5184-Photoroom.png" alt="Vanarasan S" class="rounded-lg w-full h-auto object-cover mx-auto mb-4 border-2 border-blue-400">
+                            <h4 class="text-xl font-semibold text-gray-50">Vanarasan S</h4>
+                            <p class="text-sm text-blue-400 opacity-80 mb-2">Faculty Coordinator</p>
+                        </div>
+                        <!-- Kalidas M -->
+                        <div class="glass-card-style rounded-xl p-6 shadow-lg transition-transform transform hover:scale-105">
+                            <img src="logo/Kalidass M.png" alt="Kalidas M" class="rounded-lg w-full h-auto object-cover mx-auto mb-4 border-2 border-blue-400">
+                            <h4 class="text-xl font-semibold text-gray-50">Kalidas M</h4>
+                            <p class="text-sm text-blue-400 opacity-80 mb-2">Faculty Coordinator</p>
+                        </div>
+                        <!-- Linija Shylin -->
+                        <div class="glass-card-style rounded-xl p-6 shadow-lg transition-transform transform hover:scale-105">
+                            <img src="logo/Prof. Linija (SCET10EC01)-Photoroom.png" alt="Linija Shylin" class="rounded-lg w-full h-auto object-cover mx-auto mb-4 border-2 border-blue-400">
+                            <h4 class="text-xl font-semibold text-gray-50">Linija Shylin</h4>
+                            <p class="text-sm text-blue-400 opacity-80 mb-2">Faculty Coordinator</p>
+                        </div>
+                        <!-- Pramila R -->
+                        <div class="glass-card-style rounded-xl p-6 shadow-lg transition-transform transform hover:scale-105">
+                            <img src="logo/Pramila R-Photoroom.png" alt="Pramila R" class="rounded-lg w-full h-auto object-cover mx-auto mb-4 border-2 border-blue-400">
+                            <h4 class="text-xl font-semibold text-gray-50">Pramila R</h4>
+                            <p class="text-sm text-blue-400 opacity-80 mb-2">Faculty Coordinator</p>
+                        </div>
+                         <!-- Divyashri -->
+                        <div class="glass-card-style rounded-xl p-6 shadow-lg transition-transform transform hover:scale-105">
+                            <img src="logo/Divyashri.png" alt="Divyashri" class="rounded-lg w-full h-auto object-cover mx-auto mb-4 border-2 border-blue-400">
+                            <h4 class="text-xl font-semibold text-gray-50">Divyashri</h4>
+                            <p class="text-sm text-blue-400 opacity-80 mb-2">Faculty Coordinator</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+          <!-- Gallery Section -->
+        <section id="gallery" data-page="gallery" class="py-20 px-6 relative z-10 hidden-page">
+            <div class="container mx-auto text-center glass-effect p-8 rounded-xl">
+                <h2 class="text-4xl md:text-5xl font-bold text-gray-50 mb-4">Gallery</h2>
+                <p class="text-lg md:text-xl text-gray-50 opacity-80 mb-12">A glimpse into the moments that define Sai Intelliverse 2k24</p>
+                
+                <div class="masonry-grid">
+                    <div class="masonry-item">
+                        <img src="logo/DSC_2092.JPG" alt="Gallery Image 1">
+                    </div>
+                    <div class="masonry-item">
+                        <img src="logo/DSC_2107.JPG" alt="Gallery Image 2">
+                    </div>
+                    <div class="masonry-item">
+                        <img src="logo/DSC_2137.JPG" alt="Gallery Image 3">
+                    </div>
+                    <div class="masonry-item">
+                        <img src="logo/DSC_2156.JPG" alt="Gallery Image 4">
+                    </div>
+                    <div class="masonry-item">
+                        <img src="logo/DSC_2305.JPG" alt="Gallery Image 5">
+                    </div>
+                    <div class="masonry-item">
+                        <img src="logo/DSC_2375.JPG" alt="Gallery Image 6">
+                    </div>
+                    <div class="masonry-item">
+                        <img src="logo/DSC_2381.JPG" alt="Gallery Image 7">
+                    </div>
+                    <div class="masonry-item">
+                        <img src="logo/DSC_2398.JPG" alt="Gallery Image 8">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+          <!-- Contact Section -->
+        <section id="contact" data-page="contact" class="py-20 px-6 relative z-10 hidden-page">
+            <div class="container mx-auto max-w-xl text-center glass-effect p-8 rounded-xl">
+                <h2 class="text-4xl md:text-5xl font-bold text-gray-50 mb-12">Contact</h2>
+                
+                <!-- Contact Cards Container -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8">
+                    <!-- Email Card -->
+                    <div class="glass-effect p-6 rounded-xl shadow-2xl flex flex-col items-center justify-center space-y-2">
+                        <span class="text-4xl">✉️</span>
+                        <p class="text-sm font-semibold text-gray-50">Email</p>
+                        <p class="text-xs text-blue-300">saiintelliverse@gmail.com</p>
+                    </div>
+                    <!-- WhatsApp Card -->
+                    <div class="glass-effect p-6 rounded-xl shadow-2xl flex flex-col items-center justify-center space-y-2">
+                        <span class="text-4xl">📱</span>
+                        <p class="text-sm font-semibold text-gray-50">WhatsApp</p>
+                        <p class="text-xs text-blue-300">+91 7708139276</p>
+                    </div>
+                    <!-- Instagram Card -->
+                    <div class="glass-effect p-6 rounded-xl shadow-2xl flex flex-col items-center justify-center space-y-2">
+                        <span class="text-4xl">📸</span>
+                        <p class="text-sm font-semibold text-gray-50">Instagram</p>
+                        <p class="text-xs text-blue-300">@ai_club</p>
+                    </div>
+                    <!-- Discord Card -->
+                    <div class="glass-effect p-6 rounded-xl shadow-2xl flex flex-col items-center justify-center space-y-2">
+                        <span class="text-4xl">🎮</span>
+                        <p class="text-sm font-semibold text-gray-50">Discord</p>
+                        <p class="text-xs text-blue-300">Sai intelliverse 2k25</p>
+                    </div>
+                </div>
+                <!-- College Address Card -->
+                <div class="glass-effect p-6 rounded-xl shadow-2xl mt-8">
+                    <h4 class="text-lg font-semibold text-gray-50 mb-2">College Address</h4>
+                    <p class="text-sm text-gray-300">Sri Sairam Engineering College</p>
+                    <p class="text-sm text-gray-300">Anekal, Bengaluru</p>
+                </div>
+
+            </div>
+        </section>
+
+
+
+    <!-- End of page container -->
+
+   <!-- Event Details Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <div id="modalContent" class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+                <!-- Content will be injected here by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const eventsData = {
+            'paper-presentation': {
+                title: 'Paper Presentation',
+                about: 'Word 2 World is a technical paper presentation competition designed to encourage students to showcase their research, innovative ideas, and technical expertise. Participants will present original papers on topics related to Computer Science, Artificial Intelligence, Machine Learning, Data Science, Robotics, IoT, Cybersecurity, and Emerging Technologies.The event provides a platform for young minds to enhance their presentation skills, gain constructive feedback, and inspire others with innovative problem-solving approaches. ',
+                rules: ['Team Size: Each team must consist of 4 participants.','Paper Submission:Papers must be submitted in IEEE format (maximum 6–8 pages).','Submissions should be original and plagiarism-free.','	Last date for submission: 6th October 2025.','Presentation Time:	Each team will get 8 minutes to present, followed by 2 minutes Q&A .',' Medium: Presentation must be prepared in PowerPoint (PPT). '],
+                timeline: { start: '11:30 AM', end: '3:00 PM', date: '10 October 2025' },
+                venue: 'AV Hall & Classroom:201 '
+            },
+            'idea-pitching': {
+                title: 'Idea Pitching',
+                 about: 'Shark Podium is an idea pitching competition where participants step into the shoes of entrepreneurs and innovators. Teams will pitch their startup concepts, product designs, or innovative solutions in front of a panel, much like real-world “Shark Tank.” The event focuses on creativity, feasibility, and impact, encouraging students to think like problem-solvers and future industry leaders..',
+                rules: ['Team Size: 2–4 participants per team.', 'Each team will get 5–7 minutes to pitch their idea. Followed by 3 minutes Q&A with judges.','Presentation medium: ppt or prototype demo (if available).','Ideas can be based on technology, social impact, sustainability, or business innovation.'],
+                timeline: { start: '12:00 PM', end: '3:00 PM', date: '10 October 2025' },
+                venue: 'Classroom No : 202'
+            },
+            'poster-making': {
+                title: 'Poster Making',
+                 about: 'Vision craft is a creative poster-making competition that combines art, design, and technical knowledge. Participants will design posters on themes related to technology, innovation, and sustainability, conveying strong ideas through visuals. The event encourages students to think creatively and present complex concepts in a simplified, eye-catching format.',
+                rules: ['Team size: individual or team of 3', '2.	Theme: participants must design posters based on given themes/topics announced before the event (e.g., ai for good, future of robotics, sustainable tech, cybersecurity awareness).','Digital posters: designed using software (canva, photoshop, illustrator, figma, etc.).','•	Digital posters must be submitted in jpeg/png/pdf format.','The work must be original. Copying from the internet will lead to disqualification.','On-spot poster making must be completed within 2 hours.'],
+                timeline: { start: '11:30 AM', end: '1:00 PM', date: '10 October 2025' },
+                venue: 'Classroom No: 224'
+            },
+            'auction': {
+                title: 'Auction',
+               about: 'Bit-o-scope is a thrilling auction-style event where participants compete to build the best virtual team or collection of assets within a given budget. Just like a real auction, teams must bid smartly, plan strategies, and manage resources effectively to outplay their competitors. The event tests decision-making, risk-taking, and strategic planning skills in a fun and competitive way.',
+                rules: ['Team size: 4 participants per team.', 'Each team will be provided with a virtual wallet of credits (e.g., 10,000 points).','Items (e.g.,players, gadgets, etc.) are auctioned one by one, and hidden values (strengths/weaknesses) are revealed only after purchase.','Teams bid competitively the highest bidder wins.No item exchanges or returns are allowed, requiring strategic decisions on early vs late spending.'],
+                timeline: { start: '2:00 PM', end: '3:00 PM', date: '10 October 2025' },
+                venue: 'Classroom No: 224'
+            },
+            'hypothetic-game': {
+                title: 'Hypothetic Game',
+                about: 'Be the hero is that allows students to present innovative solutions, social ideas, and creative approaches to real-world problems. Unlike technical paper presentations, this event focuses on societal impact, leadership, and creative problem-solving, giving participants a platform to showcase how their ideas can make them the “hero” society needs.',
+                rules: ['Team size: individual participant.', 'Participants will be given a scenario/problem statement (either on the spot or chosen from a pool).','•	Each participant must think, act, or narrate how they would be the hero in that situation.','Time limit: 3–5 minutes per participant.'],
+                timeline: { start: '2:00 PM', end: '3:30 PM', date: '10 October 2025' },
+                venue: 'Classroom No: 302'
+            },
+            'meme-creation': {
+                title: 'Meme Creation',
+                about: 'Meme madness is a fun-filled event where creativity meets humor. Participants will create memes based on given themes related to technology, college life, or trending topics. The event encourages students to express their wit and originality through visual storytelling while keeping it relatable and entertaining.',
+                rules: ['Participation: individual event.', 'Theme: topics will be announced at the start of the competition','Memes must be created digitally.','No offensive, vulgar, or disrespectful content.','Language used must be clean and audience-appropriate','Memes must be original (plagiarized content will be disqualified).','Digital memes must be submitted in jpeg/png/gif format.'],
+                timeline: { start: '11:30 AM', end: '1:00 PM', date: '10 October 2025' },
+                venue: 'AI&ML Lab'
+            },
+            'photography': {
+                title: 'Photography',
+                about: 'Through the lens is a photography competition that celebrates creativity, perspective, and storytelling through images. Participants will capture moments that reflect the theme given for the event, showcasing their ability to see the world differently. This event is perfect for those who love to express ideas, emotions, and stories through the art of photography..',
+                rules: ['Participation: individual event.', 'Theme: announced on the day of the competition.','Each participant must submit 1 original photograph based on the theme.','No watermarks or name tags on the photo.','Device: any device may be used (dslr, phone camera, mirrorless, etc.), but originality matters more than equipment.','The submitted photo must be the participant’s own work. Plagiarized or stock images will be disqualified.'],
+                timeline: { start: '2:00 PM', end: '3:00 PM', date: '10 October 2025' },
+                venue: 'Open Grounds'
+            },
+            'connection-game': {
+                title: 'Connection Game',
+                about: 'Participants connect ideas, objects, or themes creatively. The aim is to discover relationships between seemingly unrelated things, encouraging imagination, teamwork, and problem-solving without technical knowledge.',
+                rules: ['Team size: 2 or  4 participants per team.', 'Each team draws 3 random word cards from the pile. These words must be used to create a connection.','Teams have 5 minutes to create and explain how the 3 words are connected.','Teams must explain their connection clearly using drawings, diagrams, or storytelling. Creativity and logic are encouraged.'],
+                timeline: { start: '11:30 AM', end: '1:00 PM', date: '10 October 2025' },
+                venue: 'Coding Lab'
+            },
+            'technical-quiz': {
+                title: 'Technical Quiz',
+                about: 'The technical quiz competition is designed to test participants’ knowledge in computer science, artificial intelligence, robotics, electronics, and general technology. It encourages teamwork, problem-solving, and quick thinking, while also providing a fun and competitive environment for innovation-driven students.',
+                rules: ['Team size: each team must consist of 4 participants.', 'Each question will have 20–30 seconds to answer.','Each team will use one device (phone/laptop/tablet) to answer questions.','Top teams after each round qualify for the next stage.','Total 3–4 rounds (depending on the number of teams).'],
+                timeline: { start: '11:30 AM', end: '1:00 PM', date: '10 October 2025' },
+                venue: 'Classroom No: 302'
+            }
+        };
+
+        const modal = document.getElementById('eventModal');
+        const modalContent = document.getElementById('modalContent');
+        const closeBtn = document.querySelector('.close-btn');
+
+        document.querySelectorAll('.event-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const eventId = button.getAttribute('data-event-id');
+                const event = eventsData[eventId];
+
+                modalContent.innerHTML = `
+                    <div class="lg:col-span-1">
+                        <!-- Event Timeline -->
+                        <div class="glass-effect p-6 rounded-xl shadow-lg mb-8">
+                            <h3 class="text-xl font-bold text-blue-400 mb-4">Event Timeline</h3>
+                            <div class="space-y-2">
+                                <p><span class="font-semibold text-gray-50">Start Time:</span> ${event.timeline.start}</p>
+                                <p><span class="font-semibold text-gray-50">End Time:</span> ${event.timeline.end}</p>
+                            </div>
+                        </div>
+
+                        <!-- Venue -->
+                        <div class="glass-effect p-6 rounded-xl shadow-lg">
+                            <h3 class="text-xl font-bold text-blue-400 mb-4">Venue</h3>
+                            <p class="text-sm">${event.venue}</p>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-1 space-y-8">
+                        <!-- About the Event -->
+                        <div class="glass-effect p-6 rounded-xl shadow-lg">
+                            <h3 class="text-xl font-bold text-blue-400 mb-4">About the Event</h3>
+                            <p class="text-sm">${event.about}</p>
+                        </div>
+
+                        <!-- Rules -->
+                        <div class="glass-effect p-6 rounded-xl shadow-lg">
+                            <h3 class="text-xl font-bold text-blue-400 mb-4">Rules</h3>
+                            <ul class="list-disc list-inside text-sm space-y-2">
+                                ${event.rules.map(rule => `<li>${rule}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden'; // Prevents background scrolling
+            });
+        });
+
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            document.body.style.overflow = ''; // Re-enables background scrolling
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        });
+
+        // Dynamic page navigation
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('section');
+            const heroHeader = document.getElementById('hero');
+
+            function showPage(targetId) {
+                sections.forEach(section => {
+                    if (section.id === targetId) {
+                        section.classList.remove('hidden-page');
+                        section.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                        section.classList.add('hidden-page');
+                    }
+                });
+                if (targetId === 'hero') {
+                    heroHeader.style.paddingTop = '0';
+                } else {
+                    heroHeader.style.paddingTop = '4rem'; // Adjust padding to account for fixed header
+                }
+            }
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('data-target');
+                    showPage(targetId);
+                });
+            });
+
+            // Handle initial page load from URL hash
+            if (window.location.hash) {
+                const targetId = window.location.hash.substring(1);
+                const section = document.getElementById(targetId);
+                if (section) {
+                    showPage(targetId);
+                }
+            } else {
+                showPage('hero');
+            }
+
+            // --- Responsive Navigation ---
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuOpenIcon = document.getElementById('menu-open-icon');
+            const menuCloseIcon = document.getElementById('menu-close-icon');
+
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                    menuOpenIcon.classList.toggle('hidden');
+                    menuCloseIcon.classList.toggle('hidden');
+                });
+            }
+
+            // Close mobile menu when a nav link is clicked
+            document.querySelectorAll('#mobile-menu .nav-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                    menuOpenIcon.classList.remove('hidden');
+                    menuCloseIcon.classList.add('hidden');
+                });
+            });
+
+            // --- Logo Scroll Fade Effect ---
+            const logosContainer = document.getElementById('top-left-logos');
+            if (logosContainer) {
+                window.addEventListener('scroll', () => {
+                    // Hide logos after scrolling down 50px
+                    if (window.scrollY > 50) {
+                        logosContainer.classList.add('opacity-0', 'pointer-events-none');
+                    } else {
+                        logosContainer.classList.remove('opacity-0', 'pointer-events-none');
+                    }
+                });
+            }
+        });
+
+        
+        // Countdown timer function
+        const eventDate = new Date('October 10, 2025 00:00:00').getTime();
+        const countdownTimerEl = document.getElementById('countdown-timer');
+        
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = eventDate - now;
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            if (distance < 0) {
+                countdownTimerEl.innerHTML = 'The event is Live!';
+            } else {
+                countdownTimerEl.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+            }
+        }
+
+        setInterval(updateCountdown, 1000);
+
+
+        // --- three.js 3D Background ---
+        let scene, camera, renderer, particles;
+        let mouseX = 0, mouseY = 0;
+        let windowHalfX = window.innerWidth / 2;
+        let windowHalfY = window.innerHeight / 2;
+
+        function initThreeJS() {
+            const canvas = document.getElementById('hero-canvas');
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 5;
+
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            // Create particle geometry
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            const colors = [];
+
+            for (let i = 0; i < 10000; i++) {
+                // Generate random positions for the particles
+                const x = (Math.random() - 0.5) * 200;
+                const y = (Math.random() - 0.5) * 200;
+                const z = (Math.random() - 0.5) * 200;
+                vertices.push(x, y, z);
+
+                // Assign a color to each particle
+                const hue = Math.random() * 0.1 + 0.55; // Blue-to-purple range
+                const saturation = 0.9;
+                const lightness = 0.6;
+                const color = new THREE.Color();
+                color.setHSL(hue, saturation, lightness);
+                colors.push(color.r, color.g, color.b);
+            }
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.5,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+
+            // Event listeners for interactivity
+            document.addEventListener('mousemove', onDocumentMouseMove, false);
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        function onDocumentMouseMove(event) {
+            mouseX = (event.clientX - windowHalfX) * 0.05;
+            mouseY = (event.clientY - windowHalfY) * 0.05;
+        }
+
+        function onWindowResize() {
+            windowHalfX = window.innerWidth / 2;
+            windowHalfY = window.innerHeight / 2;
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animateThreeJS() {
+            requestAnimationFrame(animateThreeJS);
+
+            // Rotate the particles slowly
+            particles.rotation.x += 0.0005;
+            particles.rotation.y += 0.001;
+
+            // Follow the mouse subtly
+            camera.position.x += (mouseX - camera.position.x) * 0.05;
+            camera.position.y += (-mouseY - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+
+            renderer.render(scene, camera);
+        }
+
+        window.onload = function () {
+            initThreeJS();
+            animateThreeJS();
+        };
+    </script>
+</body>
+</html>
